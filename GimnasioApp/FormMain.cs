@@ -27,6 +27,8 @@ namespace GimnasioApp
         private UcInicio ucInicio; // guardamos referencia global
         public string HoraActual => lblFechaHoraActual.Text;
 
+        private DateTime ultimoDiaEjecutado = DateTime.MinValue;
+
         public FormMain(int idUsuario, string nombreUsuario, string rol)
         {
             InitializeComponent();
@@ -40,11 +42,24 @@ namespace GimnasioApp
             string fechaHora = DateTime.Now.ToString("dd/MM/yyyy      HH:mm");
             lblFechaHoraActual.Text = fechaHora;
 
+            // Actualizar hora en UCInicio si se muestra
             if (ucInicio != null && panelContenido.Controls.Contains(ucInicio))
             {
                 ucInicio.ActualizarHora(fechaHora);
             }
+
+            // NUEVO: detectar cambio de fecha
+            DateTime hoy = DateTime.Now.Date;
+
+            if (ultimoDiaEjecutado != hoy)
+            {
+                ultimoDiaEjecutado = hoy;
+
+                // Llamar corte automático del día anterior
+                EjecutarCorteFinalAutomatico();
+            }
         }
+
 
         private Button botonActual = null;
 
@@ -60,10 +75,99 @@ namespace GimnasioApp
 
         }
 
-
-        private void label1_Click(object sender, EventArgs e)
+        private void EjecutarCorteFinalAutomatico()
         {
+            DateTime ayer = DateTime.Now.AddDays(-1).Date;
 
+            string cs = ConfigurationManager.ConnectionStrings["ConnectionGymDB"].ConnectionString;
+
+            using (SqlConnection conn = new SqlConnection(cs))
+            {
+                conn.Open();
+
+                // 1. Verificar si ya hubo corte final ayer
+                string check = @"
+            SELECT COUNT(*) 
+            FROM EstadoCorte 
+            WHERE Fecha = @fecha 
+              AND CorteFinalHecho = 1";
+
+                SqlCommand cmdCheck = new SqlCommand(check, conn);
+                cmdCheck.Parameters.AddWithValue("@fecha", ayer);
+                int existe = Convert.ToInt32(cmdCheck.ExecuteScalar());
+
+                if (existe > 0)
+                {
+                    return; // ya había corte final
+                }
+
+                // 2. Calcular totales del día anterior
+
+                string qEf = @"
+            SELECT ISNULL(SUM(V.MontoTotal), 0)
+            FROM Ventas V
+            INNER JOIN MetodosPago M ON V.IdMetodoPago = M.IdMetodoPago
+            WHERE 
+                V.Anulada = 0 
+                AND CONVERT(date, V.FechaCreacion) = @fecha
+                AND M.Nombre = 'Efectivo'
+                AND (V.IncluidaEnCorteFinal = 0 OR V.IncluidaEnCorteFinal IS NULL)";
+                SqlCommand cmdEf = new SqlCommand(qEf, conn);
+                cmdEf.Parameters.AddWithValue("@fecha", ayer);
+                decimal totalEfectivo = Convert.ToDecimal(cmdEf.ExecuteScalar());
+
+                string qTr = @"
+            SELECT ISNULL(SUM(V.MontoTotal), 0)
+            FROM Ventas V
+            INNER JOIN MetodosPago M ON V.IdMetodoPago = M.IdMetodoPago
+            WHERE 
+                V.Anulada = 0 
+                AND CONVERT(date, V.FechaCreacion) = @fecha
+                AND M.Nombre <> 'Efectivo'
+                AND (V.IncluidaEnCorteFinal = 0 OR V.IncluidaEnCorteFinal IS NULL)";
+                SqlCommand cmdTr = new SqlCommand(qTr, conn);
+                cmdTr.Parameters.AddWithValue("@fecha", ayer);
+                decimal totalTransferencia = Convert.ToDecimal(cmdTr.ExecuteScalar());
+
+                decimal totalGeneral = totalEfectivo + totalTransferencia;
+
+                // 3. Insertar corte final
+                string insertCorteFinal = @"
+            INSERT INTO CorteFinal (FechaCorteFinal, TotalEfectivo, TotalTransferencia)
+            VALUES (@F, @Ef, @Tr)";
+                SqlCommand cmdInsert = new SqlCommand(insertCorteFinal, conn);
+                cmdInsert.Parameters.AddWithValue("@F", ayer);
+                cmdInsert.Parameters.AddWithValue("@Ef", totalEfectivo);
+                cmdInsert.Parameters.AddWithValue("@Tr", totalTransferencia);
+                cmdInsert.ExecuteNonQuery();
+
+                // 4. Marcar ventas del día anterior como incluidas en corte final
+                string updateVentas = @"
+            UPDATE Ventas
+            SET IncluidaEnCorteFinal = 1
+            WHERE CONVERT(date, FechaCreacion) = @fecha
+                  AND (IncluidaEnCorteFinal = 0 OR IncluidaEnCorteFinal IS NULL)";
+                SqlCommand cmdUpd = new SqlCommand(updateVentas, conn);
+                cmdUpd.Parameters.AddWithValue("@fecha", ayer);
+                cmdUpd.ExecuteNonQuery();
+
+                // 5. Registrar EstadoCorte
+                string insertEstado = @"
+            INSERT INTO EstadoCorte (Fecha, CorteFinalHecho)
+            VALUES (@fecha, 1)";
+                SqlCommand cmdEstado = new SqlCommand(insertEstado, conn);
+                cmdEstado.Parameters.AddWithValue("@fecha", ayer);
+                cmdEstado.ExecuteNonQuery();
+
+                // 6. Reiniciar acumulados en CortesCaja
+                string reset = @"
+            UPDATE CortesCaja 
+            SET EfectivoAcumulado = 0
+            WHERE CONVERT(date, FechaCorte) = @fecha";
+                SqlCommand cmdReset = new SqlCommand(reset, conn);
+                cmdReset.Parameters.AddWithValue("@fecha", ayer);
+                cmdReset.ExecuteNonQuery();
+            }
         }
 
         private void FormMain_Load_1(object sender, EventArgs e)

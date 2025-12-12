@@ -103,7 +103,6 @@
             lblDourietGYM.Size = new Size(132, 23);
             lblDourietGYM.TabIndex = 1;
             lblDourietGYM.Text = "Douriet GYM";
-            lblDourietGYM.Click += label1_Click;
             // 
             // panel2
             // 
