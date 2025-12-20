@@ -75,7 +75,7 @@
             // 
             lblEfectivo.AutoSize = true;
             lblEfectivo.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold);
-            lblEfectivo.Location = new Point(302, 435);
+            lblEfectivo.Location = new Point(307, 521);
             lblEfectivo.Name = "lblEfectivo";
             lblEfectivo.Size = new Size(74, 19);
             lblEfectivo.TabIndex = 2;
@@ -85,7 +85,7 @@
             // 
             lblTransferencia.AutoSize = true;
             lblTransferencia.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold);
-            lblTransferencia.Location = new Point(400, 435);
+            lblTransferencia.Location = new Point(405, 521);
             lblTransferencia.Name = "lblTransferencia";
             lblTransferencia.Size = new Size(118, 19);
             lblTransferencia.TabIndex = 3;
@@ -103,7 +103,7 @@
             // rbtnEfectivo
             // 
             rbtnEfectivo.AutoSize = true;
-            rbtnEfectivo.Location = new Point(328, 465);
+            rbtnEfectivo.Location = new Point(333, 551);
             rbtnEfectivo.Name = "rbtnEfectivo";
             rbtnEfectivo.Size = new Size(17, 16);
             rbtnEfectivo.TabIndex = 5;
@@ -113,7 +113,7 @@
             // rbtnTransferencia
             // 
             rbtnTransferencia.AutoSize = true;
-            rbtnTransferencia.Location = new Point(449, 465);
+            rbtnTransferencia.Location = new Point(454, 551);
             rbtnTransferencia.Name = "rbtnTransferencia";
             rbtnTransferencia.Size = new Size(17, 16);
             rbtnTransferencia.TabIndex = 6;
@@ -197,7 +197,7 @@
             // 
             lblRecibi.AutoSize = true;
             lblRecibi.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold);
-            lblRecibi.Location = new Point(31, 434);
+            lblRecibi.Location = new Point(36, 520);
             lblRecibi.Name = "lblRecibi";
             lblRecibi.Size = new Size(60, 19);
             lblRecibi.TabIndex = 18;
@@ -207,7 +207,7 @@
             // 
             lblCambio.AutoSize = true;
             lblCambio.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold);
-            lblCambio.Location = new Point(162, 434);
+            lblCambio.Location = new Point(167, 520);
             lblCambio.Name = "lblCambio";
             lblCambio.Size = new Size(75, 19);
             lblCambio.TabIndex = 19;
@@ -218,7 +218,7 @@
             txtbRecibi.BackColor = Color.White;
             txtbRecibi.BorderStyle = BorderStyle.None;
             txtbRecibi.Font = new Font("Century Gothic", 10.2F);
-            txtbRecibi.Location = new Point(32, 456);
+            txtbRecibi.Location = new Point(37, 542);
             txtbRecibi.Multiline = true;
             txtbRecibi.Name = "txtbRecibi";
             txtbRecibi.Size = new Size(90, 30);
@@ -230,7 +230,7 @@
             txtbCambio.BackColor = Color.White;
             txtbCambio.BorderStyle = BorderStyle.None;
             txtbCambio.Font = new Font("Century Gothic", 10.2F);
-            txtbCambio.Location = new Point(162, 456);
+            txtbCambio.Location = new Point(167, 542);
             txtbCambio.Multiline = true;
             txtbCambio.Name = "txtbCambio";
             txtbCambio.Size = new Size(90, 30);
@@ -241,7 +241,7 @@
             rbtnRegistrarVenta.BackColor = Color.FromArgb(192, 255, 192);
             rbtnRegistrarVenta.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             rbtnRegistrarVenta.ForeColor = Color.Black;
-            rbtnRegistrarVenta.Location = new Point(673, 444);
+            rbtnRegistrarVenta.Location = new Point(678, 530);
             rbtnRegistrarVenta.Margin = new Padding(4, 3, 4, 3);
             rbtnRegistrarVenta.Name = "rbtnRegistrarVenta";
             rbtnRegistrarVenta.Size = new Size(148, 43);
@@ -263,7 +263,7 @@
             // 
             lblTotalVenta.AutoSize = true;
             lblTotalVenta.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblTotalVenta.Location = new Point(563, 457);
+            lblTotalVenta.Location = new Point(568, 543);
             lblTotalVenta.Name = "lblTotalVenta";
             lblTotalVenta.Size = new Size(0, 19);
             lblTotalVenta.TabIndex = 24;
@@ -272,7 +272,7 @@
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label2.Location = new Point(568, 434);
+            label2.Location = new Point(573, 520);
             label2.Name = "label2";
             label2.Size = new Size(46, 19);
             label2.TabIndex = 25;
@@ -295,7 +295,7 @@
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.WhiteSmoke;
             BackgroundImageLayout = ImageLayout.None;
-            ClientSize = new Size(857, 550);
+            ClientSize = new Size(857, 606);
             Controls.Add(txtbCantidad);
             Controls.Add(label2);
             Controls.Add(lblTotalVenta);

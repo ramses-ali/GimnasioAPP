@@ -77,17 +77,17 @@
             panelInventario.BackColor = Color.White;
             panelInventario.Dock = DockStyle.Bottom;
             panelInventario.FlowDirection = FlowDirection.TopDown;
-            panelInventario.Location = new Point(0, 53);
+            panelInventario.Location = new Point(0, 91);
             panelInventario.Name = "panelInventario";
             panelInventario.Padding = new Padding(30);
-            panelInventario.Size = new Size(1309, 800);
+            panelInventario.Size = new Size(1309, 667);
             panelInventario.TabIndex = 30;
             // 
             // cmbProductos
             // 
             cmbProductos.Font = new Font("Century Gothic", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
             cmbProductos.FormattingEnabled = true;
-            cmbProductos.Location = new Point(75, 200);
+            cmbProductos.Location = new Point(61, 150);
             cmbProductos.Name = "cmbProductos";
             cmbProductos.Size = new Size(364, 29);
             cmbProductos.TabIndex = 0;
@@ -95,7 +95,7 @@
             // xtxbCantidad
             // 
             xtxbCantidad.Font = new Font("Century Gothic", 10.2F, FontStyle.Regular, GraphicsUnit.Point, 0);
-            xtxbCantidad.Location = new Point(455, 200);
+            xtxbCantidad.Location = new Point(441, 150);
             xtxbCantidad.Multiline = true;
             xtxbCantidad.Name = "xtxbCantidad";
             xtxbCantidad.PlaceholderText = "#";
@@ -107,7 +107,7 @@
             label1.AutoSize = true;
             label1.BackColor = Color.White;
             label1.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label1.Location = new Point(78, 172);
+            label1.Location = new Point(64, 122);
             label1.Name = "label1";
             label1.Size = new Size(156, 19);
             label1.TabIndex = 32;
@@ -118,7 +118,7 @@
             label2.AutoSize = true;
             label2.BackColor = Color.White;
             label2.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label2.Location = new Point(455, 172);
+            label2.Location = new Point(441, 122);
             label2.Name = "label2";
             label2.Size = new Size(84, 19);
             label2.TabIndex = 33;
@@ -129,7 +129,7 @@
             rbtnRegistrarProducto.BackColor = Color.FromArgb(192, 255, 192);
             rbtnRegistrarProducto.Font = new Font("Century Gothic", 10.8F, FontStyle.Bold, GraphicsUnit.Point, 0);
             rbtnRegistrarProducto.ForeColor = Color.Black;
-            rbtnRegistrarProducto.Location = new Point(78, 253);
+            rbtnRegistrarProducto.Location = new Point(64, 203);
             rbtnRegistrarProducto.Margin = new Padding(5, 4, 5, 4);
             rbtnRegistrarProducto.Name = "rbtnRegistrarProducto";
             rbtnRegistrarProducto.Size = new Size(148, 45);
@@ -142,7 +142,7 @@
             rbtnNuevoProducto.BackColor = Color.FromArgb(192, 192, 255);
             rbtnNuevoProducto.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
             rbtnNuevoProducto.ForeColor = Color.Black;
-            rbtnNuevoProducto.Location = new Point(270, 259);
+            rbtnNuevoProducto.Location = new Point(256, 209);
             rbtnNuevoProducto.Margin = new Padding(4, 3, 4, 3);
             rbtnNuevoProducto.Name = "rbtnNuevoProducto";
             rbtnNuevoProducto.Size = new Size(169, 39);
@@ -165,7 +165,7 @@
             Controls.Add(roundButton1);
             Controls.Add(panelInventario);
             Name = "UcInventario";
-            Size = new Size(1309, 853);
+            Size = new Size(1309, 758);
             Load += UcInventario_Load;
             ResumeLayout(false);
             PerformLayout();

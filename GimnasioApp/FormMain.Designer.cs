@@ -128,7 +128,7 @@
             // btnConfiguracion
             // 
             btnConfiguracion.Anchor = AnchorStyles.Bottom;
-            btnConfiguracion.BackColor = Color.DarkGray;
+            btnConfiguracion.BackColor = Color.FromArgb(200, 221, 200);
             btnConfiguracion.FlatAppearance.BorderColor = Color.White;
             btnConfiguracion.FlatAppearance.BorderSize = 0;
             btnConfiguracion.FlatStyle = FlatStyle.Flat;
@@ -171,7 +171,7 @@
             btnCorte.Name = "btnCorte";
             btnCorte.Size = new Size(243, 46);
             btnCorte.TabIndex = 10;
-            btnCorte.Text = "        Corte";
+            btnCorte.Text = "        Ventas y Cortes";
             btnCorte.TextAlign = ContentAlignment.MiddleLeft;
             btnCorte.UseVisualStyleBackColor = false;
             btnCorte.Click += btnCorte_Click;

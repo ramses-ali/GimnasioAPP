@@ -58,6 +58,7 @@ namespace GimnasioApp
             label7 = new Label();
             txtTotalGeneral = new Label();
             btnGenerarPDF = new RoundButton();
+            btnAsistencias = new RoundButton();
             ((System.ComponentModel.ISupportInitialize)dgvProductos).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvMembresias).BeginInit();
             ((System.ComponentModel.ISupportInitialize)dgvGeneralDia).BeginInit();
@@ -138,7 +139,7 @@ namespace GimnasioApp
             dgvProductos.ReadOnly = true;
             dgvProductos.RowHeadersWidth = 51;
             dgvProductos.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvProductos.Size = new Size(980, 180);
+            dgvProductos.Size = new Size(980, 154);
             dgvProductos.TabIndex = 15;
             // 
             // dgvMembresias
@@ -149,7 +150,7 @@ namespace GimnasioApp
             dgvMembresias.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
             dgvMembresias.BackgroundColor = Color.White;
             dgvMembresias.ColumnHeadersHeight = 29;
-            dgvMembresias.Location = new Point(39, 497);
+            dgvMembresias.Location = new Point(39, 491);
             dgvMembresias.Name = "dgvMembresias";
             dgvMembresias.ReadOnly = true;
             dgvMembresias.RowHeadersWidth = 51;
@@ -170,7 +171,7 @@ namespace GimnasioApp
             dgvGeneralDia.ReadOnly = true;
             dgvGeneralDia.RowHeadersWidth = 51;
             dgvGeneralDia.SelectionMode = DataGridViewSelectionMode.FullRowSelect;
-            dgvGeneralDia.Size = new Size(1440, 412);
+            dgvGeneralDia.Size = new Size(1440, 229);
             dgvGeneralDia.TabIndex = 17;
             // 
             // lblSeccionProductos
@@ -185,7 +186,7 @@ namespace GimnasioApp
             // lblSeccionMembresias
             // 
             lblSeccionMembresias.AutoSize = true;
-            lblSeccionMembresias.Location = new Point(39, 477);
+            lblSeccionMembresias.Location = new Point(39, 471);
             lblSeccionMembresias.Name = "lblSeccionMembresias";
             lblSeccionMembresias.Size = new Size(200, 19);
             lblSeccionMembresias.TabIndex = 19;
@@ -220,7 +221,7 @@ namespace GimnasioApp
             // txtTotalProductos
             // 
             txtTotalProductos.AutoSize = true;
-            txtTotalProductos.Location = new Point(439, 192);
+            txtTotalProductos.Location = new Point(420, 140);
             txtTotalProductos.Name = "txtTotalProductos";
             txtTotalProductos.Size = new Size(19, 19);
             txtTotalProductos.TabIndex = 26;
@@ -229,7 +230,7 @@ namespace GimnasioApp
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(439, 167);
+            label2.Location = new Point(420, 115);
             label2.Name = "label2";
             label2.Size = new Size(132, 19);
             label2.TabIndex = 27;
@@ -238,7 +239,7 @@ namespace GimnasioApp
             // label3
             // 
             label3.AutoSize = true;
-            label3.Location = new Point(617, 167);
+            label3.Location = new Point(598, 115);
             label3.Name = "label3";
             label3.Size = new Size(151, 19);
             label3.TabIndex = 29;
@@ -247,7 +248,7 @@ namespace GimnasioApp
             // txtTotalMembresias
             // 
             txtTotalMembresias.AutoSize = true;
-            txtTotalMembresias.Location = new Point(617, 192);
+            txtTotalMembresias.Location = new Point(598, 140);
             txtTotalMembresias.Name = "txtTotalMembresias";
             txtTotalMembresias.Size = new Size(19, 19);
             txtTotalMembresias.TabIndex = 28;
@@ -256,7 +257,7 @@ namespace GimnasioApp
             // label4
             // 
             label4.AutoSize = true;
-            label4.Location = new Point(1024, 167);
+            label4.Location = new Point(1005, 115);
             label4.Name = "label4";
             label4.Size = new Size(116, 19);
             label4.TabIndex = 31;
@@ -265,7 +266,7 @@ namespace GimnasioApp
             // txtTotalEfectivo
             // 
             txtTotalEfectivo.AutoSize = true;
-            txtTotalEfectivo.Location = new Point(1024, 192);
+            txtTotalEfectivo.Location = new Point(1005, 140);
             txtTotalEfectivo.Name = "txtTotalEfectivo";
             txtTotalEfectivo.Size = new Size(19, 19);
             txtTotalEfectivo.TabIndex = 30;
@@ -274,7 +275,7 @@ namespace GimnasioApp
             // label5
             // 
             label5.AutoSize = true;
-            label5.Location = new Point(814, 167);
+            label5.Location = new Point(795, 115);
             label5.Name = "label5";
             label5.Size = new Size(168, 19);
             label5.TabIndex = 32;
@@ -283,7 +284,7 @@ namespace GimnasioApp
             // txtTotalTransferencia
             // 
             txtTotalTransferencia.AutoSize = true;
-            txtTotalTransferencia.Location = new Point(814, 192);
+            txtTotalTransferencia.Location = new Point(795, 140);
             txtTotalTransferencia.Name = "txtTotalTransferencia";
             txtTotalTransferencia.Size = new Size(19, 19);
             txtTotalTransferencia.TabIndex = 33;
@@ -292,7 +293,7 @@ namespace GimnasioApp
             // label7
             // 
             label7.AutoSize = true;
-            label7.Location = new Point(1190, 167);
+            label7.Location = new Point(1171, 115);
             label7.Name = "label7";
             label7.Size = new Size(117, 19);
             label7.TabIndex = 34;
@@ -301,7 +302,7 @@ namespace GimnasioApp
             // txtTotalGeneral
             // 
             txtTotalGeneral.AutoSize = true;
-            txtTotalGeneral.Location = new Point(1190, 192);
+            txtTotalGeneral.Location = new Point(1171, 140);
             txtTotalGeneral.Name = "txtTotalGeneral";
             txtTotalGeneral.Size = new Size(19, 19);
             txtTotalGeneral.TabIndex = 35;
@@ -311,18 +312,30 @@ namespace GimnasioApp
             // 
             btnGenerarPDF.BackColor = Color.SkyBlue;
             btnGenerarPDF.ForeColor = Color.Black;
-            btnGenerarPDF.Location = new Point(39, 1104);
+            btnGenerarPDF.Location = new Point(39, 917);
             btnGenerarPDF.Name = "btnGenerarPDF";
             btnGenerarPDF.Size = new Size(188, 45);
             btnGenerarPDF.TabIndex = 36;
             btnGenerarPDF.Text = "Generar PDF";
             btnGenerarPDF.Click += btnGenerarPDF_Click;
             // 
+            // btnAsistencias
+            // 
+            btnAsistencias.BackColor = Color.FromArgb(200, 221, 200);
+            btnAsistencias.ForeColor = Color.Black;
+            btnAsistencias.Location = new Point(262, 917);
+            btnAsistencias.Name = "btnAsistencias";
+            btnAsistencias.Size = new Size(188, 45);
+            btnAsistencias.TabIndex = 37;
+            btnAsistencias.Text = "Asistencias";
+            btnAsistencias.Click += btnAsistencias_Click;
+            // 
             // UcReportes
             // 
             AutoScaleDimensions = new SizeF(10F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
+            Controls.Add(btnAsistencias);
             Controls.Add(btnGenerarPDF);
             Controls.Add(txtTotalGeneral);
             Controls.Add(label7);
@@ -397,5 +410,6 @@ namespace GimnasioApp
         private Label label7;
         private Label txtTotalGeneral;
         private RoundButton btnGenerarPDF;
+        private RoundButton btnAsistencias;
     }
 }

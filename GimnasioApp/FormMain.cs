@@ -222,12 +222,12 @@ namespace GimnasioApp
 
         private void btnCorte_Click(object sender, EventArgs e)
         {
-            LoadUserControl(new UcCorte(idUsuario, rol), btnAgregar);
+            LoadUserControl(new UcCorte(idUsuario, rol), btnCorte);
         }
 
         private void btnConfiguracion_Click(object sender, EventArgs e)
         {
-            LoadUserControl(new UcConfiguracion(idUsuario, rol), btnAgregar);
+            LoadUserControl(new UcConfiguracion(idUsuario, rol), btnConfiguracion);
         }
 
         private void btnInicio_Click(object sender, EventArgs e)

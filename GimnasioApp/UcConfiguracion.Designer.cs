@@ -238,7 +238,7 @@
             lblFechaHoraActualUC.AutoSize = true;
             lblFechaHoraActualUC.BackColor = Color.Gainsboro;
             lblFechaHoraActualUC.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblFechaHoraActualUC.Location = new Point(1394, 37);
+            lblFechaHoraActualUC.Location = new Point(1393, -11);
             lblFechaHoraActualUC.Name = "lblFechaHoraActualUC";
             lblFechaHoraActualUC.Size = new Size(0, 23);
             lblFechaHoraActualUC.TabIndex = 46;
@@ -248,7 +248,7 @@
             roundButton1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             roundButton1.BackColor = Color.Gainsboro;
             roundButton1.ForeColor = Color.Black;
-            roundButton1.Location = new Point(1381, 27);
+            roundButton1.Location = new Point(1380, -21);
             roundButton1.Margin = new Padding(2, 3, 2, 3);
             roundButton1.Name = "roundButton1";
             roundButton1.Size = new Size(231, 43);
@@ -263,7 +263,7 @@
             panel1.Controls.Add(rbtnRegistrarPrecio);
             panel1.Controls.Add(lblEditarPrecios);
             panel1.Controls.Add(cmbxPreciosMembresias);
-            panel1.Location = new Point(211, 92);
+            panel1.Location = new Point(210, 44);
             panel1.Name = "panel1";
             panel1.Size = new Size(501, 222);
             panel1.TabIndex = 51;
@@ -285,7 +285,7 @@
             panel2.Controls.Add(lblNombre);
             panel2.Controls.Add(lblAgregarUsuario);
             panel2.Controls.Add(lblEditarUsuarios);
-            panel2.Location = new Point(211, 611);
+            panel2.Location = new Point(210, 537);
             panel2.Name = "panel2";
             panel2.Size = new Size(1027, 419);
             panel2.TabIndex = 52;
@@ -376,7 +376,7 @@
             panel3.Controls.Add(cmbProductos);
             panel3.Controls.Add(lblInventario);
             panel3.Controls.Add(lblEditarPreciosInventario);
-            panel3.Location = new Point(211, 345);
+            panel3.Location = new Point(210, 283);
             panel3.Name = "panel3";
             panel3.Size = new Size(794, 235);
             panel3.TabIndex = 56;

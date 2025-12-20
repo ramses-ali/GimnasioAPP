@@ -114,6 +114,7 @@
             ShowIcon = false;
             StartPosition = FormStartPosition.CenterScreen;
             WindowState = FormWindowState.Maximized;
+            Load += FormLogin_Load;
             ((System.ComponentModel.ISupportInitialize)CircularPictureBox).EndInit();
             ResumeLayout(false);
             PerformLayout();

@@ -36,11 +36,16 @@ namespace GimnasioApp
                     return;
                 }
 
-                // 🔹 Validar número de teléfono de 10 dígitos
-                if (txtTelefono.Text.Length != 10 || !txtTelefono.Text.All(char.IsDigit))
+                string telefono = txtTelefono.Text.Trim();
+
+                if (!string.IsNullOrEmpty(telefono))
                 {
-                    MessageBox.Show("El número de teléfono debe contener exactamente 10 dígitos.", "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                    return;
+                    if (telefono.Length != 10 || !telefono.All(char.IsDigit))
+                    {
+                        MessageBox.Show("El teléfono debe contener exactamente 10 dígitos.",
+                            "Advertencia", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                        return;
+                    }
                 }
 
                 string connectionString = ConfigurationManager.ConnectionStrings["ConnectionGymDB"].ConnectionString;

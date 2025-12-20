@@ -690,5 +690,11 @@ namespace GimnasioApp
             GenerarReportePDF();
         }
 
+        private void btnAsistencias_Click(object sender, EventArgs e)
+        {
+            FormReporteAsistencias form = new FormReporteAsistencias();
+            form.StartPosition = FormStartPosition.Manual;
+            form.ShowDialog();
+        }
     }
 }

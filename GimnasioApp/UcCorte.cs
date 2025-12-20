@@ -204,11 +204,15 @@ namespace GimnasioApp
                     acumuladoPrevio = Convert.ToDecimal(resPrev);
 
                 // 🔸 Obtener fecha del último corte
-                DateTime ultimaFechaCorte = DateTime.MinValue;
+                DateTime ultimaFechaCorte = new DateTime(1753, 1, 1);
+
                 string queryFecha = "SELECT TOP 1 FechaCorte FROM CortesCaja ORDER BY FechaCorte DESC, IdCorte DESC";
                 object resFecha = new SqlCommand(queryFecha, conn).ExecuteScalar();
+
                 if (resFecha != null && resFecha != DBNull.Value)
+                {
                     ultimaFechaCorte = Convert.ToDateTime(resFecha);
+                }
 
                 // 🔸 Ventas NUEVAS en EFECTIVO
                 string queryVentasEfectivo = @"

@@ -188,7 +188,7 @@ namespace GimnasioApp
             foreach (var ctrl in controlesEliminar)
                 this.Controls.Remove(ctrl);
 
-            int startY = 310;
+            int startY = 370;
             int index = 1;
 
             foreach (var articulo in articulosAgregados)
@@ -394,6 +394,18 @@ namespace GimnasioApp
 
             decimal precioMembresia = idPlan != 0 ? ObtenerPrecioMembresia(idPlan) : 0m;
             decimal totalVenta = precioMembresia + articulosAgregados.Sum(a => a.Subtotal);
+
+            // Validacion para no permitir ventas en $0
+            if (totalVenta <= 0)
+            {
+                MessageBox.Show(
+                    "No se puede registrar una venta con total $0.00.\nAgregue al menos un producto o una membresía.",
+                    "Venta inválida",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Warning
+                );
+                return;
+            }
 
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
