@@ -75,6 +75,74 @@ namespace GimnasioApp
 
         }
 
+        private void LimpiarBotonActivo()
+        {
+            if (botonActual != null)
+            {
+                botonActual.BackColor = Color.FromArgb(255, 255, 255); // color original
+                botonActual = null;
+            }
+        }
+
+        private void EjecutarCorteNormalAutomatico(DateTime fecha)
+        {
+            string cs = ConfigurationManager.ConnectionStrings["ConnectionGymDB"].ConnectionString;
+
+            using (SqlConnection conn = new SqlConnection(cs))
+            {
+                conn.Open();
+
+                // 1️⃣ Obtener IdUsuario del último corte registrado
+                int idUsuarioUltimo = ObtenerUltimoUsuarioCorte(conn);
+
+                if (idUsuarioUltimo <= 0)
+                    return; // No hay cortes previos, no hacer nada
+
+                // 2️⃣ Ventas en efectivo del día
+                string query = @"
+            SELECT ISNULL(SUM(V.MontoTotal),0)
+            FROM Ventas V
+            INNER JOIN MetodosPago M ON V.IdMetodoPago = M.IdMetodoPago
+            WHERE 
+                V.Anulada = 0
+                AND M.Nombre = 'Efectivo'
+                AND CONVERT(date, V.FechaCreacion) = @fecha";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@fecha", fecha);
+                decimal totalEfectivo = Convert.ToDecimal(cmd.ExecuteScalar());
+
+                if (totalEfectivo <= 0)
+                    return;
+
+                // 3️⃣ Registrar corte normal automático
+                string insert = @"
+            INSERT INTO CortesCaja (IdUsuario, MontoTotal, FechaCorte, EfectivoAcumulado)
+            VALUES (@idUsuario, @monto, DATEADD(SECOND, -1, DATEADD(DAY, 1, @fecha)), @monto)";
+
+                SqlCommand cmdInsert = new SqlCommand(insert, conn);
+                cmdInsert.Parameters.AddWithValue("@idUsuario", idUsuarioUltimo);
+                cmdInsert.Parameters.AddWithValue("@monto", totalEfectivo);
+                cmdInsert.Parameters.AddWithValue("@fecha", fecha);
+                cmdInsert.ExecuteNonQuery();
+            }
+        }
+
+        private int ObtenerUltimoUsuarioCorte(SqlConnection conn)
+        {
+            string query = @"
+        SELECT TOP 1 IdUsuario
+        FROM CortesCaja
+        ORDER BY FechaCorte DESC, IdCorte DESC";
+
+            object res = new SqlCommand(query, conn).ExecuteScalar();
+
+            return (res != null && res != DBNull.Value)
+                ? Convert.ToInt32(res)
+                : -1;
+        }
+
+
         private void EjecutarCorteFinalAutomatico()
         {
             DateTime ayer = DateTime.Now.AddDays(-1).Date;
@@ -100,6 +168,9 @@ namespace GimnasioApp
                 {
                     return; // ya había corte final
                 }
+
+                // 🔹 Ejecutar corte normal automático del día anterior
+                EjecutarCorteNormalAutomatico(ayer);
 
                 // 2. Calcular totales del día anterior
 
@@ -195,15 +266,24 @@ namespace GimnasioApp
                 btnReportes.Visible = true;
                 btnConfiguracion.Visible = true;
             }
+            // Activar botón Inicio por defecto
+            ActivarBoton(btnInicio);
+
         }
 
         private void LoadUserControl(UserControl uc, Button boton)
         {
-            ActivarBoton(boton);
-            uc.Dock = DockStyle.Fill;   // ocupa todo el panel
-            panelContenido.Controls.Clear(); // limpia lo que había
+            //NO activar color para botones especiales
+            if (boton != btnCorte && boton != btnConfiguracion && boton != btnReportes)
+            {
+                ActivarBoton(boton);
+            }
+
+            uc.Dock = DockStyle.Fill;
+            panelContenido.Controls.Clear();
             panelContenido.Controls.Add(uc);
         }
+
 
         private void btnAgregar_Click(object sender, EventArgs e)
         {
@@ -222,11 +302,13 @@ namespace GimnasioApp
 
         private void btnCorte_Click(object sender, EventArgs e)
         {
+            LimpiarBotonActivo();
             LoadUserControl(new UcCorte(idUsuario, rol), btnCorte);
         }
 
         private void btnConfiguracion_Click(object sender, EventArgs e)
         {
+            LimpiarBotonActivo();
             LoadUserControl(new UcConfiguracion(idUsuario, rol), btnConfiguracion);
         }
 
@@ -289,6 +371,8 @@ namespace GimnasioApp
 
         private void btnReportes_Click(object sender, EventArgs e)
         {
+            LimpiarBotonActivo();
+
             panelContenido.Controls.Clear();
             UcReportes reportes = new UcReportes();
             reportes.Dock = DockStyle.Fill;

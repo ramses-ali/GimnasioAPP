@@ -12,8 +12,10 @@ using System.Windows.Forms;
 
 namespace GimnasioApp
 {
+
     public partial class FormVentas : Form
     {
+        public event Action OnVentaRegistrada;
 
         private int idUsuario;
 
@@ -43,11 +45,61 @@ namespace GimnasioApp
         {
             CargarMembresias();
             CargarProductos();
+            ConfigurarAutoCompletarClientes();
 
             cbxMembresia.SelectedIndexChanged += cbxMembresia_SelectedIndexChanged;
 
             lblTotalVenta.Text = "$0.00";
         }
+
+        private void ConfigurarAutoCompletarClientes()
+        {
+            txtbNombreVenta.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            txtbNombreVenta.AutoCompleteSource = AutoCompleteSource.CustomSource;
+
+            AutoCompleteStringCollection clientes = new AutoCompleteStringCollection();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT DISTINCT 
+                   RTRIM(Nombres + ' ' + ISNULL(Apellidos, '')) AS NombreCompleto
+            FROM Clientes
+            WHERE Estado = 1
+            ORDER BY NombreCompleto";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        clientes.Add(reader.GetString(0));
+                    }
+                }
+            }
+
+            txtbNombreVenta.AutoCompleteCustomSource = clientes;
+        }
+
+        private void txtbNombreVenta_Leave(object sender, EventArgs e)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT IdCliente
+            FROM Clientes
+            WHERE RTRIM(Nombres + ' ' + ISNULL(Apellidos,'')) = @nombre";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@nombre", txtbNombreVenta.Text);
+
+                var result = cmd.ExecuteScalar();
+                txtbIdVenta.Text = result != null ? result.ToString() : "";
+            }
+        }
+
 
         private void cbxMembresia_SelectedIndexChanged(object sender, EventArgs e)
         {
@@ -337,6 +389,31 @@ namespace GimnasioApp
             return (0, 0, DateTime.MinValue);
         }
 
+        private void RegistrarAsistenciaHoy(SqlConnection conn, SqlTransaction tran, int idCliente)
+        {
+            // Verificar si ya tiene asistencia hoy
+            string check = @"SELECT COUNT(*) 
+                     FROM Asistencias 
+                     WHERE IdCliente = @idCliente
+                     AND CAST(FechaEntrada AS DATE) = CAST(GETDATE() AS DATE)";
+
+            using (SqlCommand cmdCheck = new SqlCommand(check, conn, tran))
+            {
+                cmdCheck.Parameters.AddWithValue("@idCliente", idCliente);
+                int existe = (int)cmdCheck.ExecuteScalar();
+
+                if (existe == 0)
+                {
+                    string insert = "INSERT INTO Asistencias (IdCliente) VALUES (@idCliente)";
+                    using (SqlCommand cmdInsert = new SqlCommand(insert, conn, tran))
+                    {
+                        cmdInsert.Parameters.AddWithValue("@idCliente", idCliente);
+                        cmdInsert.ExecuteNonQuery();
+                    }
+                }
+            }
+        }
+
         private void rbtnRegistrarVenta_Click(object sender, EventArgs e)
         {
             // Permitir vender sin membresía y sin cliente (si hay productos)
@@ -354,15 +431,12 @@ namespace GimnasioApp
             if (cbxMembresia.SelectedValue != null)
                 idPlan = (int)cbxMembresia.SelectedValue;
 
-            // Validaciones mínimas:
-            // - Si no hay cliente y tampoco hay artículos ni membresía -> no permitir
             if (idCliente == 0 && articulosAgregados.Count == 0 && idPlan == 0)
             {
                 MessageBox.Show("No hay cliente, ni productos, ni membresía para registrar.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
 
-            // Si user seleccionó una membresía (idPlan != 0) pero no hay cliente -> requerir cliente
             if (idPlan != 0 && idCliente == 0)
             {
                 MessageBox.Show("Debe seleccionar un cliente para vender una membresía.", "Aviso", MessageBoxButtons.OK, MessageBoxIcon.Warning);
@@ -370,14 +444,8 @@ namespace GimnasioApp
             }
 
             int idMetodoPago = 0;
-
-            if (rbtnEfectivo.Checked)
-                idMetodoPago = 1;
-            else if (rbtnTransferencia.Checked)
-                idMetodoPago = 2;
-            /*else if (rbtnTarjeta.Checked)
-                idMetodoPago = 3;
-            */
+            if (rbtnEfectivo.Checked) idMetodoPago = 1;
+            else if (rbtnTransferencia.Checked) idMetodoPago = 2;
 
             if (idMetodoPago == 0)
             {
@@ -386,16 +454,9 @@ namespace GimnasioApp
             }
 
             int duracionDias = ObtenerDuracionMembresia(idPlan);
-            DateTime fechaInicio = DateTime.Now;
-            DateTime fechaFin = (duracionDias == 1 &&
-               (cbxMembresia.Text.ToLower().Contains("dia") || cbxMembresia.Text.ToLower().Contains("estudiante")))
-                ? fechaInicio.Date
-                : fechaInicio.AddDays(duracionDias);
-
             decimal precioMembresia = idPlan != 0 ? ObtenerPrecioMembresia(idPlan) : 0m;
             decimal totalVenta = precioMembresia + articulosAgregados.Sum(a => a.Subtotal);
 
-            // Validacion para no permitir ventas en $0
             if (totalVenta <= 0)
             {
                 MessageBox.Show(
@@ -414,52 +475,58 @@ namespace GimnasioApp
 
                 try
                 {
-                    // 1️⃣ Registrar venta (IdCliente puede ser NULL)
+                    // 1️⃣ Registrar venta
                     string numVenta = Guid.NewGuid().ToString().Substring(0, 8).ToUpper();
                     string queryVenta = @"INSERT INTO Ventas (NumeroVenta, IdCliente, IdUsuario, MontoTotal, IdMetodoPago) 
-                      OUTPUT INSERTED.IdVenta
-                      VALUES (@numVenta, @idCliente, @idUsuario, @monto, @metodo)";
+                                  OUTPUT INSERTED.IdVenta
+                                  VALUES (@numVenta, @idCliente, @idUsuario, @monto, @metodo)";
                     SqlCommand cmdVenta = new SqlCommand(queryVenta, conn, tran);
                     cmdVenta.Parameters.AddWithValue("@numVenta", numVenta);
                     cmdVenta.Parameters.AddWithValue("@idUsuario", idUsuario);
-                    // IdCliente puede ser NULL en la venta:
-                    if (idCliente > 0) cmdVenta.Parameters.AddWithValue("@idCliente", idCliente);
-                    else cmdVenta.Parameters.AddWithValue("@idCliente", DBNull.Value);
+                    cmdVenta.Parameters.AddWithValue("@idCliente", idCliente > 0 ? (object)idCliente : DBNull.Value);
                     cmdVenta.Parameters.AddWithValue("@monto", totalVenta);
                     cmdVenta.Parameters.AddWithValue("@metodo", idMetodoPago);
                     int idVenta = Convert.ToInt32(cmdVenta.ExecuteScalar());
 
-                    // 2️⃣ Membresía: únicamente si se escogió una membresía (idPlan != 0)
                     int? idMembresia = null;
+
+                    // 2️⃣ Membresía (solo si se eligió un plan)
                     if (idPlan != 0)
                     {
                         var membresiaInfo = ObtenerMembresiaActivaInfo(idCliente);
 
-                        // 🔹 Registrar detalle de la membresía vendida
-                        string insertDetalleM = @"INSERT INTO DetalleMembresiaVenta
-                                (IdVenta, IdPlan, Precio, FechaInicio, FechaFin)
-                                VALUES (@v, @p, @precio, @ini, @fin)";
-
-                        SqlCommand cmdDetM = new SqlCommand(insertDetalleM, conn, tran);
-                        cmdDetM.Parameters.AddWithValue("@v", idVenta);
-                        cmdDetM.Parameters.AddWithValue("@p", idPlan);
-                        cmdDetM.Parameters.AddWithValue("@precio", precioMembresia);
-                        cmdDetM.Parameters.AddWithValue("@ini", fechaInicio);
-                        cmdDetM.Parameters.AddWithValue("@fin", fechaFin);
-                        cmdDetM.ExecuteNonQuery();
-
-                        // Si existe membresía y está vigente EN LA FECHA (hoy) -> bloquear renovación
+                        DateTime fechaInicio;
                         if (membresiaInfo.IdMembresia > 0 && membresiaInfo.FechaFin.Date >= DateTime.Today)
                         {
-                            MessageBox.Show("El cliente ya tiene una membresía activa vigente.");
-                            tran.Rollback();
-                            return;
+                            var resp = MessageBox.Show(
+                                $"El cliente ya tiene una membresía activa hasta {membresiaInfo.FechaFin:dd/MM/yyyy}.\n\n" +
+                                "¿Desea realizar un pago por adelantado?",
+                                "Membresía activa",
+                                MessageBoxButtons.OKCancel,
+                                MessageBoxIcon.Question,
+                                MessageBoxDefaultButton.Button2
+                            );
+
+                            if (resp == DialogResult.Cancel)
+                            {
+                                tran.Rollback();
+                                return;
+                            }
+
+                            fechaInicio = membresiaInfo.FechaFin.AddDays(1);
                         }
+                        else
+                        {
+                            fechaInicio = DateTime.Today;
+                        }
+
+                        DateTime fechaFin = fechaInicio.AddDays(duracionDias - 1);
 
                         if (membresiaInfo.IdMembresia > 0)
                         {
-                            // Renovar (actualizar)
-                            string update = @"UPDATE MembresiasCliente SET IdPlan=@plan, IdMetodoPago=@met, FechaInicio=@ini, FechaFin=@fin WHERE IdMembresia=@id";
+                            string update = @"UPDATE MembresiasCliente 
+                                      SET IdPlan=@plan, IdMetodoPago=@met, FechaInicio=@ini, FechaFin=@fin, Activa=1 
+                                      WHERE IdMembresia=@id";
                             SqlCommand cmdUpd = new SqlCommand(update, conn, tran);
                             cmdUpd.Parameters.AddWithValue("@plan", idPlan);
                             cmdUpd.Parameters.AddWithValue("@met", idMetodoPago);
@@ -471,10 +538,9 @@ namespace GimnasioApp
                         }
                         else
                         {
-                            // Insertar nueva membresía
                             string insert = @"INSERT INTO MembresiasCliente (IdCliente, IdPlan, IdMetodoPago, FechaInicio, FechaFin, Activa)
-                                              OUTPUT INSERTED.IdMembresia
-                                              VALUES (@idC, @idP, @met, @ini, @fin, 1)";
+                                      OUTPUT INSERTED.IdMembresia
+                                      VALUES (@idC, @idP, @met, @ini, @fin, 1)";
                             SqlCommand cmdIns = new SqlCommand(insert, conn, tran);
                             cmdIns.Parameters.AddWithValue("@idC", idCliente);
                             cmdIns.Parameters.AddWithValue("@idP", idPlan);
@@ -483,29 +549,43 @@ namespace GimnasioApp
                             cmdIns.Parameters.AddWithValue("@fin", fechaFin);
                             idMembresia = Convert.ToInt32(cmdIns.ExecuteScalar());
                         }
+
+                        // Detalle de membresía vendida
+                        string insertDetalleM = @"INSERT INTO DetalleMembresiaVenta
+                                          (IdVenta, IdPlan, Precio, FechaInicio, FechaFin)
+                                          VALUES (@v, @p, @precio, @ini, @fin)";
+                        SqlCommand cmdDetM = new SqlCommand(insertDetalleM, conn, tran);
+                        cmdDetM.Parameters.AddWithValue("@v", idVenta);
+                        cmdDetM.Parameters.AddWithValue("@p", idPlan);
+                        cmdDetM.Parameters.AddWithValue("@precio", precioMembresia);
+                        cmdDetM.Parameters.AddWithValue("@ini", fechaInicio);
+                        cmdDetM.Parameters.AddWithValue("@fin", fechaFin);
+                        cmdDetM.ExecuteNonQuery();
+
+                        RegistrarAsistenciaHoy(conn, tran, idCliente);
                     }
 
-                    // 3️⃣ Detalle y movimientos (si hay artículos)
+                    // 3️⃣ Artículos
                     foreach (var art in articulosAgregados)
                     {
-                        string det = @"INSERT INTO DetalleVenta (IdVenta, IdProducto, Cantidad, PrecioUnitario)
-                                       VALUES (@v, @p, @c, @pu)";
-                        SqlCommand cmdD = new SqlCommand(det, conn, tran);
+                        SqlCommand cmdD = new SqlCommand(
+                            @"INSERT INTO DetalleVenta (IdVenta, IdProducto, Cantidad, PrecioUnitario)
+                      VALUES (@v, @p, @c, @pu)", conn, tran);
                         cmdD.Parameters.AddWithValue("@v", idVenta);
                         cmdD.Parameters.AddWithValue("@p", art.IdProducto);
                         cmdD.Parameters.AddWithValue("@c", art.Cantidad);
                         cmdD.Parameters.AddWithValue("@pu", art.PrecioUnitario);
                         cmdD.ExecuteNonQuery();
 
-                        string stock = "UPDATE Productos SET Stock = Stock - @c WHERE IdProducto=@p";
-                        SqlCommand cmdS = new SqlCommand(stock, conn, tran);
+                        SqlCommand cmdS = new SqlCommand(
+                            "UPDATE Productos SET Stock = Stock - @c WHERE IdProducto=@p", conn, tran);
                         cmdS.Parameters.AddWithValue("@c", art.Cantidad);
                         cmdS.Parameters.AddWithValue("@p", art.IdProducto);
                         cmdS.ExecuteNonQuery();
 
-                        string mov = @"INSERT INTO MovimientosInventario (IdProducto, TipoMovimiento, Cantidad, CostoUnitario, Referencia, IdUsuario)
-                            VALUES (@p, 'Salida', @c, @cu, @ref, @idUsuario)";
-                        SqlCommand cmdM = new SqlCommand(mov, conn, tran);
+                        SqlCommand cmdM = new SqlCommand(
+                            @"INSERT INTO MovimientosInventario (IdProducto, TipoMovimiento, Cantidad, CostoUnitario, Referencia, IdUsuario)
+                      VALUES (@p, 'Salida', @c, @cu, @ref, @idUsuario)", conn, tran);
                         cmdM.Parameters.AddWithValue("@p", art.IdProducto);
                         cmdM.Parameters.AddWithValue("@c", art.Cantidad);
                         cmdM.Parameters.AddWithValue("@cu", art.PrecioUnitario);
@@ -514,23 +594,23 @@ namespace GimnasioApp
                         cmdM.ExecuteNonQuery();
                     }
 
-                    // 4️⃣ Pagos: pasar IdMembresiaCliente NULL si no hay membresía
-                    string pago = @"INSERT INTO Pagos (IdVenta, IdMembresiaCliente, Monto, IdMetodoPago, IdUsuario)
-                        VALUES (@v, @m, @mo, @met, @idUsuario)";
-                    SqlCommand cmdP = new SqlCommand(pago, conn, tran);
+                    // 4️⃣ Pago
+                    SqlCommand cmdP = new SqlCommand(
+                        @"INSERT INTO Pagos (IdVenta, IdMembresiaCliente, Monto, IdMetodoPago, IdUsuario)
+                  VALUES (@v, @m, @mo, @met, @idUsuario)", conn, tran);
                     cmdP.Parameters.AddWithValue("@v", idVenta);
-                    cmdP.Parameters.AddWithValue("@idUsuario", idUsuario);
-                    if (idMembresia.HasValue)
-                        cmdP.Parameters.AddWithValue("@m", idMembresia.Value);
-                    else
-                        cmdP.Parameters.AddWithValue("@m", DBNull.Value);
+                    cmdP.Parameters.AddWithValue("@m", idMembresia.HasValue ? (object)idMembresia.Value : DBNull.Value);
                     cmdP.Parameters.AddWithValue("@mo", totalVenta);
                     cmdP.Parameters.AddWithValue("@met", idMetodoPago);
+                    cmdP.Parameters.AddWithValue("@idUsuario", idUsuario);
                     cmdP.ExecuteNonQuery();
 
                     tran.Commit();
+
                     OnAsistenciaRegistrada?.Invoke();
-                    MessageBox.Show("✅ Venta registrada correctamente. Se actualizó inventario y pago.", "Éxito");
+                    OnVentaRegistrada?.Invoke();
+
+                    MessageBox.Show("✅ Venta registrada correctamente.", "Éxito");
                     this.DialogResult = DialogResult.OK;
                     this.Close();
                 }
@@ -547,13 +627,14 @@ namespace GimnasioApp
             using (SqlConnection conn = new SqlConnection(connectionString))
             {
                 conn.Open();
-                string query = "SELECT TOP 1 IdCliente FROM Clientes WHERE Nombres + ' ' + ISNULL(Apellidos,'') LIKE @nombre";
+                string query = "SELECT TOP 1 IdCliente FROM Clientes WHERE Nombres + ' ' + ISNULL(Apellidos,'') = @nombre";
                 SqlCommand cmd = new SqlCommand(query, conn);
-                cmd.Parameters.AddWithValue("@nombre", "%" + nombre + "%");
+                cmd.Parameters.AddWithValue("@nombre", nombre);
                 var result = cmd.ExecuteScalar();
                 return result != null ? (int)result : 0;
             }
         }
+
 
         private void txtbNombreVenta_TextChanged_1(object sender, EventArgs e)
         {

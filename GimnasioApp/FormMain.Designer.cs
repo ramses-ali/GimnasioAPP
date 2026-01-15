@@ -29,6 +29,7 @@
         private void InitializeComponent()
         {
             components = new System.ComponentModel.Container();
+            System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(FormMain));
             panelContenido = new Panel();
             lblFechaHoraActual = new Label();
             roundButton1 = new RoundButton();
@@ -301,6 +302,7 @@
             Controls.Add(panel2);
             Controls.Add(panelContenido);
             FormBorderStyle = FormBorderStyle.None;
+            Icon = (Icon)resources.GetObject("$this.Icon");
             Name = "FormMain";
             ShowIcon = false;
             StartPosition = FormStartPosition.CenterScreen;
@@ -313,6 +315,7 @@
             panel2.PerformLayout();
             ResumeLayout(false);
             PerformLayout();
+
         }
 
         #endregion

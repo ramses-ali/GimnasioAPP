@@ -238,7 +238,7 @@
             lblFechaHoraActualUC.AutoSize = true;
             lblFechaHoraActualUC.BackColor = Color.Gainsboro;
             lblFechaHoraActualUC.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            lblFechaHoraActualUC.Location = new Point(1393, -11);
+            lblFechaHoraActualUC.Location = new Point(1395, 37);
             lblFechaHoraActualUC.Name = "lblFechaHoraActualUC";
             lblFechaHoraActualUC.Size = new Size(0, 23);
             lblFechaHoraActualUC.TabIndex = 46;
@@ -248,7 +248,7 @@
             roundButton1.Anchor = AnchorStyles.Top | AnchorStyles.Right;
             roundButton1.BackColor = Color.Gainsboro;
             roundButton1.ForeColor = Color.Black;
-            roundButton1.Location = new Point(1380, -21);
+            roundButton1.Location = new Point(1382, 27);
             roundButton1.Margin = new Padding(2, 3, 2, 3);
             roundButton1.Name = "roundButton1";
             roundButton1.Size = new Size(231, 43);

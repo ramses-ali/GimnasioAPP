@@ -62,9 +62,9 @@
             lblCorte.Location = new Point(4, 10);
             lblCorte.Margin = new Padding(4, 0, 4, 0);
             lblCorte.Name = "lblCorte";
-            lblCorte.Size = new Size(53, 19);
+            lblCorte.Size = new Size(137, 19);
             lblCorte.TabIndex = 27;
-            lblCorte.Text = "Corte";
+            lblCorte.Text = "Ventas y Cortes";
             // 
             // roundButton1
             // 
@@ -104,7 +104,7 @@
             dgvVentas.BackgroundColor = Color.White;
             dgvVentas.BorderStyle = BorderStyle.None;
             dgvVentas.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvVentas.Location = new Point(498, 452);
+            dgvVentas.Location = new Point(498, 468);
             dgvVentas.Name = "dgvVentas";
             dgvVentas.RowHeadersWidth = 51;
             dgvVentas.Size = new Size(883, 340);
@@ -128,7 +128,7 @@
             dgvUltimoCorte.Location = new Point(498, 201);
             dgvUltimoCorte.Name = "dgvUltimoCorte";
             dgvUltimoCorte.RowHeadersWidth = 51;
-            dgvUltimoCorte.Size = new Size(723, 107);
+            dgvUltimoCorte.Size = new Size(883, 182);
             dgvUltimoCorte.TabIndex = 34;
             // 
             // label1
@@ -137,15 +137,15 @@
             label1.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
             label1.Location = new Point(498, 162);
             label1.Name = "label1";
-            label1.Size = new Size(131, 23);
+            label1.Size = new Size(149, 23);
             label1.TabIndex = 35;
-            label1.Text = "Ultimo Corte";
+            label1.Text = "Ultimos Cortes";
             // 
             // label2
             // 
             label2.AutoSize = true;
             label2.Font = new Font("Century Gothic", 12F, FontStyle.Bold, GraphicsUnit.Point, 0);
-            label2.Location = new Point(498, 414);
+            label2.Location = new Point(498, 430);
             label2.Name = "label2";
             label2.Size = new Size(122, 23);
             label2.TabIndex = 36;

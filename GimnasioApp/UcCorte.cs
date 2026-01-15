@@ -131,28 +131,34 @@ namespace GimnasioApp
                 conn.Open();
 
                 string query = @"
-                    SELECT TOP 1 
-                        C.IdCorte AS [Folio Corte],
-                        U.NombreUsuario AS [Usuario],
-                        C.MontoTotal AS [Efectivo],
-                        C.FechaCorte AS [Fecha]
-                    FROM CortesCaja C
-                    INNER JOIN UsuariosSistema U ON C.IdUsuario = U.IdUsuario
-                    ORDER BY C.FechaCorte DESC";
+            SELECT 
+                C.IdCorte AS [Folio Corte],
+                U.NombreUsuario AS [Usuario],
+                C.MontoTotal AS [Efectivo del Corte],
+                C.EfectivoAcumulado AS [Efectivo Acumulado],
+                C.FechaCorte AS [Fecha]
+            FROM CortesCaja C
+            INNER JOIN UsuariosSistema U ON C.IdUsuario = U.IdUsuario
+            WHERE CONVERT(date, C.FechaCorte) = CONVERT(date, GETDATE())
+            ORDER BY C.FechaCorte DESC";
 
                 SqlCommand cmd = new SqlCommand(query, conn);
                 DataTable dt = new DataTable();
                 dt.Load(cmd.ExecuteReader());
+
                 dgvUltimoCorte.DataSource = dt;
 
                 if (dgvUltimoCorte.Columns.Contains("Fecha"))
-                {
                     dgvUltimoCorte.Columns["Fecha"].Width = 220;
-                }
+
                 if (dgvUltimoCorte.Columns.Contains("Usuario"))
-                {
                     dgvUltimoCorte.Columns["Usuario"].Width = 180;
-                }
+
+                if (dgvUltimoCorte.Columns.Contains("Efectivo del Corte"))
+                    dgvUltimoCorte.Columns["Efectivo del Corte"].DefaultCellStyle.Format = "C2";
+
+                if (dgvUltimoCorte.Columns.Contains("Efectivo Acumulado"))
+                    dgvUltimoCorte.Columns["Efectivo Acumulado"].DefaultCellStyle.Format = "C2";
             }
         }
 
@@ -185,7 +191,7 @@ namespace GimnasioApp
             {
                 conn.Open();
 
-                // 🔸 Evitar cortes si ya hay corte final
+                // Evitar cortes si ya hay corte final
                 string queryCheck = "SELECT COUNT(*) FROM EstadoCorte WHERE Fecha = CONVERT(date, GETDATE()) AND CorteFinalHecho = 1";
                 SqlCommand cmdCheck = new SqlCommand(queryCheck, conn);
                 int cerrado = Convert.ToInt32(cmdCheck.ExecuteScalar());
@@ -195,7 +201,7 @@ namespace GimnasioApp
                     return;
                 }
 
-                // 🔸 Obtener acumulado anterior
+                // Obtener acumulado anterior
                 decimal acumuladoPrevio = 0;
                 string queryPrev = "SELECT TOP 1 EfectivoAcumulado FROM CortesCaja ORDER BY FechaCorte DESC, IdCorte DESC";
                 SqlCommand cmdPrev = new SqlCommand(queryPrev, conn);
@@ -203,18 +209,15 @@ namespace GimnasioApp
                 if (resPrev != null && resPrev != DBNull.Value)
                     acumuladoPrevio = Convert.ToDecimal(resPrev);
 
-                // 🔸 Obtener fecha del último corte
+                // Obtener fecha del último corte
                 DateTime ultimaFechaCorte = new DateTime(1753, 1, 1);
-
                 string queryFecha = "SELECT TOP 1 FechaCorte FROM CortesCaja ORDER BY FechaCorte DESC, IdCorte DESC";
                 object resFecha = new SqlCommand(queryFecha, conn).ExecuteScalar();
 
                 if (resFecha != null && resFecha != DBNull.Value)
-                {
                     ultimaFechaCorte = Convert.ToDateTime(resFecha);
-                }
 
-                // 🔸 Ventas NUEVAS en EFECTIVO
+                // Ventas NUEVAS en EFECTIVO
                 string queryVentasEfectivo = @"
                     SELECT ISNULL(SUM(V.MontoTotal),0)
                     FROM Ventas V
@@ -222,13 +225,15 @@ namespace GimnasioApp
                     WHERE 
                         V.Anulada = 0
                         AND M.Nombre = 'Efectivo'
-                        AND V.FechaCreacion > @UltimoCorte";
+                        AND V.FechaCreacion > @UltimoCorte
+                        AND(V.IncluidaEnCorteFinal = 0 OR V.IncluidaEnCorteFinal IS NULL)";
 
                 SqlCommand cmdVentas = new SqlCommand(queryVentasEfectivo, conn);
                 cmdVentas.Parameters.AddWithValue("@UltimoCorte", ultimaFechaCorte);
                 decimal nuevasVentasEfectivo = Convert.ToDecimal(cmdVentas.ExecuteScalar());
 
-                // 🔸 Membresías pagadas en EFECTIVO
+                /*
+                // Membresías pagadas en EFECTIVO
                 string queryMembresiasEfectivo = @"
                     SELECT ISNULL(SUM(PM.Precio),0)
                     FROM MembresiasCliente MC
@@ -242,8 +247,13 @@ namespace GimnasioApp
                 cmdMembresias.Parameters.AddWithValue("@UltimoCorte", ultimaFechaCorte);
                 decimal nuevasMembresiasEfectivo = Convert.ToDecimal(cmdMembresias.ExecuteScalar());
 
-                // 🔸 Total efectivo nuevo = ventas + membresías
                 decimal nuevasEntradasEfectivo = nuevasVentasEfectivo + nuevasMembresiasEfectivo;
+                */
+
+                // ================================================================
+
+                // SOLO efectivo nuevo REAL (sin duplicar acumulado)
+                decimal nuevasEntradasEfectivo = nuevasVentasEfectivo;
 
                 if (nuevasEntradasEfectivo == 0)
                 {
@@ -251,23 +261,27 @@ namespace GimnasioApp
                     return;
                 }
 
-                // 🔸 Nuevo acumulado = acumulado previo + nuevas ventas en efectivo
+                // Nuevo acumulado (SE CALCULA UNA SOLA VEZ)
                 decimal nuevoAcumulado = acumuladoPrevio + nuevasEntradasEfectivo;
 
-                // 🔸 Registrar el nuevo corte
+                // Registrar el nuevo corte
                 string insert = @"
-                    INSERT INTO CortesCaja (IdUsuario, MontoTotal, FechaCorte, EfectivoAcumulado)
-                    VALUES (@idUsuario, @monto, GETDATE(), @acumulado)";
+            INSERT INTO CortesCaja (IdUsuario, MontoTotal, FechaCorte, EfectivoAcumulado)
+            VALUES (@idUsuario, @monto, GETDATE(), @acumulado)";
                 SqlCommand cmdInsert = new SqlCommand(insert, conn);
                 cmdInsert.Parameters.AddWithValue("@idUsuario", idUsuario);
                 cmdInsert.Parameters.AddWithValue("@monto", nuevasEntradasEfectivo);
                 cmdInsert.Parameters.AddWithValue("@acumulado", nuevoAcumulado);
                 cmdInsert.ExecuteNonQuery();
 
-                MessageBox.Show($"✅ Corte realizado correctamente.\n\n" +
-                                $"Monto nuevo en efectivo: ${nuevasEntradasEfectivo:0.00}\n" +
-                                $"Efectivo acumulado: ${nuevoAcumulado:0.00}",
-                                "Corte Registrado", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                MessageBox.Show(
+                    $"✅ Corte realizado correctamente.\n\n" +
+                    $"Monto nuevo en efectivo: ${nuevasEntradasEfectivo:0.00}\n" +
+                    $"Efectivo acumulado: ${nuevoAcumulado:0.00}",
+                    "Corte Registrado",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Information
+                );
 
                 CargarUltimoCorte();
                 CargarVentasDelDia();
@@ -280,7 +294,7 @@ namespace GimnasioApp
             {
                 conn.Open();
                 
-                // 🟡 Verificar si ya se hizo el corte final hoy
+                // Verificar si ya se hizo el corte final hoy
                 string queryCheck = "SELECT COUNT(*) FROM EstadoCorte WHERE Fecha = CONVERT(date, GETDATE()) AND CorteFinalHecho = 1";
                 SqlCommand cmdCheck = new SqlCommand(queryCheck, conn);
                 int existe = Convert.ToInt32(cmdCheck.ExecuteScalar());
@@ -290,7 +304,11 @@ namespace GimnasioApp
                     return;
                 }
 
-                // 💵 Totales del día
+                // 1) Ejecutar corte normal automático si hay ventas pendientes
+                bool huboCorteNormal = EjecutarCorteNormal(conn);
+
+
+                // Totales del día
                 string queryEfectivo = @"
                     SELECT ISNULL(SUM(V.MontoTotal), 0)
                     FROM Ventas V
@@ -315,7 +333,7 @@ namespace GimnasioApp
 
                 decimal totalGeneral = totalEfectivo + totalTransferencia;
 
-                // 🧾 Registrar corte final
+                // Registrar corte final
                 string insertCorteFinal = @"
                     INSERT INTO CorteFinal (TotalEfectivo, TotalTransferencia)
                     VALUES (@TEfectivo, @TTransfer)";
@@ -326,7 +344,7 @@ namespace GimnasioApp
                     cmdInsert.ExecuteNonQuery();
                 }
 
-                // 🔄 Marcar ventas del día como incluidas en el corte final
+                // Marcar ventas del día como incluidas en el corte final
                 string queryUpdate = @"
                     UPDATE Ventas
                     SET IncluidaEnCorteFinal = 1
@@ -334,22 +352,22 @@ namespace GimnasioApp
                           AND IncluidaEnCorteFinal = 0";
                 new SqlCommand(queryUpdate, conn).ExecuteNonQuery();
 
-                // 🗓 Registrar el estado del corte final
+                // Registrar el estado del corte final
                 string insertEstado = "INSERT INTO EstadoCorte (Fecha, CorteFinalHecho) VALUES (CONVERT(date, GETDATE()), 1)";
                 new SqlCommand(insertEstado, conn).ExecuteNonQuery();
 
-                // 🔄 Reiniciar efectivo acumulado del día actual a 0
+                // Reiniciar efectivo acumulado del día actual a 0
                 string resetEfectivo = @"
                     UPDATE CortesCaja 
                     SET EfectivoAcumulado = 0
                     WHERE CONVERT(date, FechaCorte) = CONVERT(date, GETDATE())";
                 new SqlCommand(resetEfectivo, conn).ExecuteNonQuery();
 
-                // 📊 Guardar detalle de tipos de venta en memoria antes de insertar
+                // Guardar detalle de tipos de venta en memoria antes de insertar
                 List<(string categoria, int cantidad, decimal total)> productos = new();
                 List<(string categoria, int cantidad, decimal total)> membresias = new();
 
-                // === 🛍 PRODUCTOS ===
+                // === PRODUCTOS ===
                 string queryProductos = @"
                     SELECT 
                         ISNULL(P.Categoria, 'Sin categoría') AS Categoria, 
@@ -376,7 +394,7 @@ namespace GimnasioApp
                     }
                 }
 
-                // === 💪 MEMBRESÍAS ===
+                // === MEMBRESÍAS ===
                 string queryMembresias = @"
                     SELECT 
                         ISNULL(PM.Categoria, 'Sin categoría') AS Categoria,
@@ -401,7 +419,7 @@ namespace GimnasioApp
                     }
                 }
 
-                // 🚀 Insertar después de cerrar los readers
+                // Insertar después de cerrar los readers
                 foreach (var p in productos)
                 {
                     string insertTipo = @"
@@ -430,7 +448,7 @@ namespace GimnasioApp
                     }
                 }
 
-                // 🧹 Limpiar interfaz
+                // Limpiar interfaz
                 dgvVentas.DataSource = null;
                 dgvUltimoCorte.DataSource = null;
                 lblTotalCaja.Text = "Efectivo en caja: $0.00";
@@ -444,5 +462,70 @@ namespace GimnasioApp
                                 "Corte Final", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
         }
+
+        private bool EjecutarCorteNormal(SqlConnection conn)
+        {
+            // Obtener acumulado anterior
+            decimal acumuladoPrevio = 0;
+            string queryPrev = "SELECT TOP 1 EfectivoAcumulado FROM CortesCaja ORDER BY FechaCorte DESC, IdCorte DESC";
+            object resPrev = new SqlCommand(queryPrev, conn).ExecuteScalar();
+            if (resPrev != null && resPrev != DBNull.Value)
+                acumuladoPrevio = Convert.ToDecimal(resPrev);
+
+            // Obtener fecha del último corte
+            DateTime ultimaFechaCorte = new DateTime(1753, 1, 1);
+            string queryFecha = "SELECT TOP 1 FechaCorte FROM CortesCaja ORDER BY FechaCorte DESC, IdCorte DESC";
+            object resFecha = new SqlCommand(queryFecha, conn).ExecuteScalar();
+            if (resFecha != null && resFecha != DBNull.Value)
+                ultimaFechaCorte = Convert.ToDateTime(resFecha);
+
+            // Ventas nuevas en efectivo
+            string queryVentas = @"
+                SELECT ISNULL(SUM(V.MontoTotal),0)
+                FROM Ventas V
+                INNER JOIN MetodosPago M ON V.IdMetodoPago = M.IdMetodoPago
+                WHERE 
+                    V.Anulada = 0
+                    AND M.Nombre = 'Efectivo'
+                    AND V.FechaCreacion > @fecha
+                    AND (V.IncluidaEnCorteFinal = 0 OR V.IncluidaEnCorteFinal IS NULL)";
+            SqlCommand cmdVentas = new SqlCommand(queryVentas, conn);
+            cmdVentas.Parameters.AddWithValue("@fecha", ultimaFechaCorte);
+            decimal ventasNuevas = Convert.ToDecimal(cmdVentas.ExecuteScalar());
+
+            // Si no hay nada nuevo, NO hacer corte
+            if (ventasNuevas <= 0)
+                return false;
+
+            decimal nuevoAcumulado = acumuladoPrevio + ventasNuevas;
+
+            // Registrar corte normal
+            string insert = @"
+                INSERT INTO CortesCaja (IdUsuario, MontoTotal, FechaCorte, EfectivoAcumulado)
+                VALUES (@u, @m, GETDATE(), @a)";
+            SqlCommand cmdInsert = new SqlCommand(insert, conn);
+            cmdInsert.Parameters.AddWithValue("@u", idUsuario);
+            cmdInsert.Parameters.AddWithValue("@m", ventasNuevas);
+            cmdInsert.Parameters.AddWithValue("@a", nuevoAcumulado);
+            cmdInsert.ExecuteNonQuery();
+
+            string marcarVentas = @"
+                UPDATE Ventas
+                SET IncluidaEnCorteFinal = 1
+                WHERE 
+                    Anulada = 0
+                    AND IdMetodoPago = 1
+                    AND FechaCreacion > @fecha
+                    AND IncluidaEnCorteFinal = 0";
+
+            SqlCommand cmdMark = new SqlCommand(marcarVentas, conn);
+            cmdMark.Parameters.AddWithValue("@fecha", ultimaFechaCorte);
+            cmdMark.ExecuteNonQuery();
+
+            return true;
+        }
+
+
+
     }
 }

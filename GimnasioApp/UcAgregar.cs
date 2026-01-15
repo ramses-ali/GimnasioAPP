@@ -40,6 +40,16 @@ namespace GimnasioApp
 
         }
 
+        private void LimpiarCampos()
+        {
+            txtbNombreCliente.Clear();
+            txtbApellidosCliente.Clear();
+            txtbCelular.Clear();
+
+            txtbNombreCliente.Focus();
+        }
+
+
         private void rbtnRegistrarCliente_Click(object sender, EventArgs e)
         {
             try
@@ -102,6 +112,7 @@ namespace GimnasioApp
                         if (rowsAffected > 0)
                         {
                             MessageBox.Show("Cliente registrado correctamente ✅", "Éxito", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            LimpiarCampos();
                         }
                         else
                         {

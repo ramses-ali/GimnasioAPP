@@ -365,12 +365,17 @@ namespace GimnasioApp
                     txtTotalMembresias.Text = ToDecimalSafe(c.ExecuteScalar()).ToString("0.00");
                 }
 
-                // ------------------ TOTAL EFECTIVO EN CORTES --------------------
-                string qEfectivoCortes = @"
-            SELECT ISNULL(SUM(MontoTotal),0)
-            FROM CortesCaja
-            WHERE CONVERT(date, FechaCorte) = @Dia";
-                using (SqlCommand c = new SqlCommand(qEfectivoCortes, con))
+                // ------------------ TOTAL EFECTIVO --------------------
+                // ✅ TOTAL EFECTIVO REAL DEL DÍA
+                string qEfectivoReal = @"
+                    SELECT ISNULL(SUM(V.MontoTotal),0)
+                    FROM Ventas V
+                    INNER JOIN MetodosPago M ON M.IdMetodoPago = V.IdMetodoPago
+                    WHERE CONVERT(date, V.FechaCreacion) = @Dia
+                      AND V.Anulada = 0
+                      AND M.Nombre = 'Efectivo'";
+
+                using (SqlCommand c = new SqlCommand(qEfectivoReal, con))
                 {
                     c.Parameters.AddWithValue("@Dia", dia.Date);
                     txtTotalEfectivo.Text = ToDecimalSafe(c.ExecuteScalar()).ToString("0.00");
@@ -423,6 +428,7 @@ namespace GimnasioApp
                         P.Nombre AS Nombre,
                         DV.Cantidad AS Cantidad,
                         (DV.Cantidad * DV.PrecioUnitario) AS Total,
+                        MP.Nombre AS MetodoPago,
                         (
                             SELECT TOP 1 C.IdCorte 
                             FROM CortesCaja C 
@@ -433,6 +439,7 @@ namespace GimnasioApp
                     FROM Ventas V
                     INNER JOIN DetalleVenta DV ON DV.IdVenta = V.IdVenta
                     INNER JOIN Productos P ON P.IdProducto = DV.IdProducto
+                    INNER JOIN MetodosPago MP ON MP.IdMetodoPago = V.IdMetodoPago
                     WHERE CONVERT(date, V.FechaCreacion) = @Dia
                       AND V.Anulada = 0
 
@@ -444,6 +451,7 @@ namespace GimnasioApp
                         PM.Nombre AS Nombre,
                         1 AS Cantidad,
                         DMV.Precio AS Total,
+                        MP.Nombre AS MetodoPago,
                         (
                             SELECT TOP 1 C.IdCorte 
                             FROM CortesCaja C 
@@ -454,6 +462,7 @@ namespace GimnasioApp
                     FROM DetalleMembresiaVenta DMV
                     INNER JOIN PlanesMembresia PM ON PM.IdPlan = DMV.IdPlan
                     INNER JOIN Ventas V ON V.IdVenta = DMV.IdVenta
+                    INNER JOIN MetodosPago MP ON MP.IdMetodoPago = V.IdMetodoPago
                     WHERE CONVERT(date, V.FechaCreacion) = @Dia
                       AND V.Anulada = 0
 
@@ -468,6 +477,11 @@ namespace GimnasioApp
                     da.Fill(dt);
 
                 dgvGeneralDia.DataSource = dt;
+
+                dgvGeneralDia.Columns["Hora"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                dgvGeneralDia.Columns["Cantidad"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+                dgvGeneralDia.Columns["Corte"].AutoSizeMode = DataGridViewAutoSizeColumnMode.Fill;
+
             }
         }
 
@@ -597,7 +611,7 @@ namespace GimnasioApp
                 tablaTotales.AddCell("Concepto");
                 tablaTotales.AddCell("Total");
 
-                tablaTotales.AddCell("Efectivo en Cortes");
+                tablaTotales.AddCell("Efectivo");
                 tablaTotales.AddCell($"${totalEfectivo:0.00}");
 
                 tablaTotales.AddCell("Transferencias");

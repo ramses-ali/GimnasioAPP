@@ -34,7 +34,11 @@
             lblFechaHoraActualUC = new Label();
             roundButton1 = new RoundButton();
             dgvAsistencias = new DataGridView();
+            dgvVentas = new DataGridView();
+            label1 = new Label();
+            label2 = new Label();
             ((System.ComponentModel.ISupportInitialize)dgvAsistencias).BeginInit();
+            ((System.ComponentModel.ISupportInitialize)dgvVentas).BeginInit();
             SuspendLayout();
             // 
             // btnAsistencia
@@ -102,14 +106,48 @@
             dgvAsistencias.Location = new Point(78, 295);
             dgvAsistencias.Name = "dgvAsistencias";
             dgvAsistencias.RowHeadersWidth = 51;
-            dgvAsistencias.Size = new Size(1000, 487);
+            dgvAsistencias.Size = new Size(786, 487);
             dgvAsistencias.TabIndex = 27;
+            // 
+            // dgvVentas
+            // 
+            dgvVentas.BackgroundColor = Color.White;
+            dgvVentas.BorderStyle = BorderStyle.None;
+            dgvVentas.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+            dgvVentas.Location = new Point(736, 295);
+            dgvVentas.Name = "dgvVentas";
+            dgvVentas.RowHeadersWidth = 51;
+            dgvVentas.Size = new Size(480, 487);
+            dgvVentas.TabIndex = 28;
+            // 
+            // label1
+            // 
+            label1.AutoSize = true;
+            label1.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label1.Location = new Point(78, 273);
+            label1.Name = "label1";
+            label1.Size = new Size(101, 19);
+            label1.TabIndex = 29;
+            label1.Text = "Asistencias";
+            // 
+            // label2
+            // 
+            label2.AutoSize = true;
+            label2.Font = new Font("Century Gothic", 10.2F, FontStyle.Bold, GraphicsUnit.Point, 0);
+            label2.Location = new Point(736, 273);
+            label2.Name = "label2";
+            label2.Size = new Size(65, 19);
+            label2.TabIndex = 30;
+            label2.Text = "Ventas";
             // 
             // UcInicio
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
+            Controls.Add(label2);
+            Controls.Add(label1);
+            Controls.Add(dgvVentas);
             Controls.Add(dgvAsistencias);
             Controls.Add(lblFechaHoraActualUC);
             Controls.Add(btnAsistencia);
@@ -120,6 +158,7 @@
             Size = new Size(1309, 853);
             Load += UcInicio_Load;
             ((System.ComponentModel.ISupportInitialize)dgvAsistencias).EndInit();
+            ((System.ComponentModel.ISupportInitialize)dgvVentas).EndInit();
             ResumeLayout(false);
             PerformLayout();
         }
@@ -131,5 +170,8 @@
         private Label lblFechaHoraActualUC;
         private RoundButton roundButton1;
         private DataGridView dgvAsistencias;
+        private DataGridView dgvVentas;
+        private Label label1;
+        private Label label2;
     }
 }

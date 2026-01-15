@@ -51,6 +51,7 @@
             lblTotalVenta = new Label();
             label2 = new Label();
             txtbCantidad = new TextBox();
+            panel1 = new Panel();
             SuspendLayout();
             // 
             // lblMembresia
@@ -148,21 +149,22 @@
             txtbIdVenta.Location = new Point(31, 143);
             txtbIdVenta.Multiline = true;
             txtbIdVenta.Name = "txtbIdVenta";
-            txtbIdVenta.Size = new Size(70, 30);
+            txtbIdVenta.Size = new Size(70, 28);
             txtbIdVenta.TabIndex = 9;
             txtbIdVenta.TextChanged += txtbIdVenta_TextChanged_1;
             // 
             // txtbNombreVenta
             // 
+            txtbNombreVenta.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             txtbNombreVenta.BackColor = Color.White;
             txtbNombreVenta.BorderStyle = BorderStyle.None;
             txtbNombreVenta.Font = new Font("Century Gothic", 10.2F);
-            txtbNombreVenta.Location = new Point(114, 143);
-            txtbNombreVenta.Multiline = true;
+            txtbNombreVenta.Location = new Point(114, 147);
             txtbNombreVenta.Name = "txtbNombreVenta";
-            txtbNombreVenta.Size = new Size(331, 30);
+            txtbNombreVenta.Size = new Size(331, 21);
             txtbNombreVenta.TabIndex = 10;
             txtbNombreVenta.TextChanged += txtbNombreVenta_TextChanged_1;
+            txtbNombreVenta.Leave += txtbNombreVenta_Leave;
             // 
             // lblArticulo
             // 
@@ -289,6 +291,14 @@
             txtbCantidad.Size = new Size(84, 29);
             txtbCantidad.TabIndex = 27;
             // 
+            // panel1
+            // 
+            panel1.BackColor = Color.White;
+            panel1.Location = new Point(114, 143);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(334, 28);
+            panel1.TabIndex = 28;
+            // 
             // FormVentas
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -319,6 +329,7 @@
             Controls.Add(label1);
             Controls.Add(lblMembresia);
             Controls.Add(txtbIdVenta);
+            Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Location = new Point(350, 250);
             MaximizeBox = false;
@@ -358,5 +369,6 @@
         private Label lblTotalVenta;
         private Label label2;
         private TextBox txtbCantidad;
+        private Panel panel1;
     }
 }

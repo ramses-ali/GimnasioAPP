@@ -48,6 +48,7 @@
             txtContraseña.Size = new Size(317, 50);
             txtContraseña.TabIndex = 1;
             txtContraseña.TextChanged += textBox1_TextChanged;
+            txtContraseña.KeyDown += txtContraseña_KeyDown;
             // 
             // txtCorreo
             // 

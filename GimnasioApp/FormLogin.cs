@@ -117,5 +117,18 @@ namespace GimnasioApp
         {
             txtCorreo.Focus();
         }
+
+        private void txtContraseña_KeyDown(object sender, KeyEventArgs e)
+        {
+            if (e.KeyCode == Keys.Enter)
+            {
+                if (e.KeyCode == Keys.Enter)
+                {
+                    btnLogin_Click(this, EventArgs.Empty);
+                    e.SuppressKeyPress = true;
+                    e.Handled = true;
+                }
+            }
+        }
     }
 }

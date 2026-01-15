@@ -20,6 +20,8 @@ namespace GimnasioApp
         public event Action OnAsistenciaRegistrada; // 🔹 Evento para notificar al UcInicio
         private bool isUpdating = false; // 🔹 Para evitar loops infinitos
 
+        string connectionString = ConfigurationManager.ConnectionStrings["ConnectionGymDB"].ConnectionString;
+
         public FormAsistencias(int idUsuario)
         {
             InitializeComponent();
@@ -199,6 +201,60 @@ namespace GimnasioApp
                 {
                     MessageBox.Show("Error al buscar cliente: " + ex.Message, "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
+            }
+        }
+
+        private void FormAsistencias_Load(object sender, EventArgs e)
+        {
+            ConfigurarAutoCompletarClientes();
+
+        }
+
+        private void ConfigurarAutoCompletarClientes()
+        {
+            txtbNombreAsistencia.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
+            txtbNombreAsistencia.AutoCompleteSource = AutoCompleteSource.CustomSource;
+
+            AutoCompleteStringCollection clientes = new AutoCompleteStringCollection();
+
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT DISTINCT 
+                   RTRIM(Nombres + ' ' + ISNULL(Apellidos, '')) AS NombreCompleto
+            FROM Clientes
+            WHERE Estado = 1
+            ORDER BY NombreCompleto";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                using (SqlDataReader reader = cmd.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        clientes.Add(reader.GetString(0));
+                    }
+                }
+            }
+
+            txtbNombreAsistencia.AutoCompleteCustomSource = clientes;
+        }
+
+        private void txtbNombreVenta_Leave(object sender, EventArgs e)
+        {
+            using (SqlConnection conn = new SqlConnection(connectionString))
+            {
+                conn.Open();
+                string query = @"
+            SELECT IdCliente
+            FROM Clientes
+            WHERE RTRIM(Nombres + ' ' + ISNULL(Apellidos,'')) = @nombre";
+
+                SqlCommand cmd = new SqlCommand(query, conn);
+                cmd.Parameters.AddWithValue("@nombre", txtbNombreAsistencia.Text);
+
+                var result = cmd.ExecuteScalar();
+                txtbIdAsistencia.Text = result != null ? result.ToString() : "";
             }
         }
     }

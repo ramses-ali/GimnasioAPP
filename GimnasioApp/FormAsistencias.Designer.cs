@@ -33,18 +33,19 @@
             lblId = new Label();
             txtbIdAsistencia = new TextBox();
             rbtnRegistrarAsistencia = new RoundButton();
+            panel1 = new Panel();
             SuspendLayout();
             // 
             // txtbNombreAsistencia
             // 
+            txtbNombreAsistencia.AutoCompleteMode = AutoCompleteMode.SuggestAppend;
             txtbNombreAsistencia.BackColor = Color.White;
             txtbNombreAsistencia.BorderStyle = BorderStyle.None;
             txtbNombreAsistencia.Font = new Font("Century Gothic", 10.2F);
-            txtbNombreAsistencia.Location = new Point(120, 81);
-            txtbNombreAsistencia.Multiline = true;
+            txtbNombreAsistencia.Location = new Point(122, 85);
             txtbNombreAsistencia.Name = "txtbNombreAsistencia";
             txtbNombreAsistencia.PlaceholderText = " Aa";
-            txtbNombreAsistencia.Size = new Size(398, 30);
+            txtbNombreAsistencia.Size = new Size(398, 21);
             txtbNombreAsistencia.TabIndex = 14;
             txtbNombreAsistencia.TextChanged += txtbNombreAsistencia_TextChanged;
             // 
@@ -94,6 +95,14 @@
             rbtnRegistrarAsistencia.Text = "Registrar";
             rbtnRegistrarAsistencia.Click += rbtnRegistrarAsistencia_Click;
             // 
+            // panel1
+            // 
+            panel1.BackColor = Color.White;
+            panel1.Location = new Point(120, 81);
+            panel1.Name = "panel1";
+            panel1.Size = new Size(402, 30);
+            panel1.TabIndex = 24;
+            // 
             // FormAsistencias
             // 
             AutoScaleDimensions = new SizeF(8F, 20F);
@@ -106,6 +115,7 @@
             Controls.Add(lblNombre);
             Controls.Add(lblId);
             Controls.Add(txtbIdAsistencia);
+            Controls.Add(panel1);
             FormBorderStyle = FormBorderStyle.FixedSingle;
             Location = new Point(350, 250);
             MaximizeBox = false;
@@ -116,6 +126,7 @@
             ShowInTaskbar = false;
             StartPosition = FormStartPosition.Manual;
             Text = "Asistencias";
+            Load += FormAsistencias_Load;
             ResumeLayout(false);
             PerformLayout();
         }
@@ -127,5 +138,6 @@
         private Label lblId;
         private TextBox txtbIdAsistencia;
         private RoundButton rbtnRegistrarAsistencia;
+        private Panel panel1;
     }
 }

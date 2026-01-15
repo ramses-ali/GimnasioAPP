@@ -23,6 +23,7 @@ namespace GimnasioApp
             this.idUsuario = idUsuario; // Guardamos el ID
             dgvAsistencias.CellFormatting += dgvAsistencias_CellFormatting; // ✅ pintar dinámico
             CargarAsistencias();
+            CargarVentasDelDia();
         }
 
         private void dgvAsistencias_CellFormatting(object sender, DataGridViewCellFormattingEventArgs e)
@@ -110,6 +111,60 @@ namespace GimnasioApp
             }
         }
 
+        private void CargarVentasDelDia()
+        {
+            try
+            {
+                string connectionString = ConfigurationManager
+                    .ConnectionStrings["ConnectionGymDB"].ConnectionString;
+
+                using (SqlConnection conn = new SqlConnection(connectionString))
+                {
+                    conn.Open();
+
+                    string query = @"
+                        SELECT 
+                            p.Nombre AS Producto,
+                            d.Cantidad,
+                            v.FechaCreacion
+                        FROM Ventas v
+                        INNER JOIN DetalleVenta d ON v.IdVenta = d.IdVenta
+                        INNER JOIN Productos p ON d.IdProducto = p.IdProducto
+                        WHERE 
+                            v.Anulada = 0
+                            AND CAST(v.FechaCreacion AS DATE) = CAST(GETDATE() AS DATE)
+                        ORDER BY v.FechaCreacion DESC";
+
+                    SqlDataAdapter da = new SqlDataAdapter(query, conn);
+                    DataTable dt = new DataTable();
+                    da.Fill(dt);
+
+                    dgvVentas.DataSource = dt;
+
+                    // Ajustes visuales
+
+                    if (dgvVentas.Columns.Contains("Producto"))
+                        dgvVentas.Columns["Producto"].Width = 150;
+
+                    if (dgvVentas.Columns.Contains("Cantidad"))
+                        dgvVentas.Columns["Cantidad"].Width = 80;
+
+                    if (dgvVentas.Columns.Contains("FechaCreacion"))
+                        dgvVentas.Columns["FechaCreacion"].Width = 180;
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(
+                    "Error al cargar ventas del día: " + ex.Message,
+                    "Error",
+                    MessageBoxButtons.OK,
+                    MessageBoxIcon.Error
+                );
+            }
+        }
+
+
         private void UcInicio_Load(object sender, EventArgs e)
         {
             lblFechaHoraActualUC.Text = ((FormMain)this.ParentForm).lblFechaHoraActual.Text;
@@ -122,6 +177,7 @@ namespace GimnasioApp
             {
                 form.StartPosition = FormStartPosition.Manual;
                 form.OnAsistenciaRegistrada += CargarAsistencias; // refresca asistencias
+                form.OnVentaRegistrada += CargarVentasDelDia;
                 form.ShowDialog(); // se abre como modal y bloquea la ventana principal
             }
         }

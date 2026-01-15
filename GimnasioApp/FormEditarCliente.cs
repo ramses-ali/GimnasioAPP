@@ -122,33 +122,71 @@ namespace GimnasioApp
                 {
                     conn.Open();
 
-                    // VALIDAR SI EL CLIENTE TIENE REGISTROS ASOCIADOS 🔍
-                    string checkDependencias = @"
-                SELECT 
-                    (SELECT COUNT(*) FROM Ventas WHERE IdCliente = @id) +
-                    (SELECT COUNT(*) FROM MembresiasCliente WHERE IdCliente = @id)
-            ";
+                    // 🔹 Validar membresías del cliente
+                    string queryFechaFin = @"
+                        SELECT MAX(FechaFin)
+                        FROM MembresiasCliente
+                        WHERE IdCliente = @idCliente";
 
-                    using (SqlCommand cmdCheck = new SqlCommand(checkDependencias, conn))
+                    DateTime hoy = DateTime.Today;
+                    DateTime ayer = hoy.AddDays(-1);
+
+                    using (SqlCommand cmdFecha = new SqlCommand(queryFechaFin, conn))
                     {
-                        cmdCheck.Parameters.AddWithValue("@id", idCliente);
+                        cmdFecha.Parameters.AddWithValue("@idCliente", idCliente);
 
-                        int dependencias = (int)cmdCheck.ExecuteScalar();
+                        object result = cmdFecha.ExecuteScalar();
 
-                        if (dependencias > 0)
+                        // CASO 1: Cliente sin ninguna membresía → SE PUEDE ELIMINAR
+                        if (result == DBNull.Value)
                         {
-                            MessageBox.Show(
-                                "❌ No se puede eliminar este cliente porque tiene membresías registradas.\n" +
-                                "",
-                                "Operación no permitida",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Error
-                            );
-                            return;
+                            // No tiene membresías, continuar eliminación
+                        }
+                        else
+                        {
+                            DateTime fechaFin = Convert.ToDateTime(result);
+
+                            // CASO 2: Tiene membresía vigente
+                            if (fechaFin > ayer)
+                            {
+                                MessageBox.Show(
+                                    $"❌ No se puede eliminar el cliente.\n\n" +
+                                    $"Tiene una membresía vigente hasta el {fechaFin:dd/MM/yyyy}.\n" +
+                                    $"Solo se permite eliminar clientes sin membresía o con membresía vencida hasta el {ayer:dd/MM/yyyy}.",
+                                    "Eliminación bloqueada",
+                                    MessageBoxButtons.OK,
+                                    MessageBoxIcon.Warning
+                                );
+                                return;
+                            }
+
+                            // CASO 3: Membresía vencida (ayer o antes) → SE PUEDE ELIMINAR
                         }
                     }
 
-                    // ELIMINAR CLIENTE 🔥
+                    // Eliminar asistencias
+                    string deleteAsistencias = @"
+                        DELETE FROM Asistencias
+                        WHERE IdCliente = @idCliente";
+
+                    using (SqlCommand cmd = new SqlCommand(deleteAsistencias, conn))
+                    {
+                        cmd.Parameters.AddWithValue("@idCliente", idCliente);
+                        cmd.ExecuteNonQuery();
+                    }
+
+                    // Eliminar membresías del cliente (ya están vencidas o no existen)
+                    string deleteMembresias = @"
+                        DELETE FROM MembresiasCliente
+                        WHERE IdCliente = @idCliente";
+
+                    using (SqlCommand cmdDelMem = new SqlCommand(deleteMembresias, conn))
+                    {
+                        cmdDelMem.Parameters.AddWithValue("@idCliente", idCliente);
+                        cmdDelMem.ExecuteNonQuery();
+                    }
+
+                    // ELIMINAR CLIENTE
                     string eliminarQuery = @"DELETE FROM Clientes WHERE IdCliente = @idCliente";
 
                     using (SqlCommand cmdDel = new SqlCommand(eliminarQuery, conn))

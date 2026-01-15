@@ -40,7 +40,7 @@
             // 
             cbxFecha.DropDownStyle = ComboBoxStyle.DropDownList;
             cbxFecha.FormattingEnabled = true;
-            cbxFecha.Location = new Point(160, 77);
+            cbxFecha.Location = new Point(108, 78);
             cbxFecha.Name = "cbxFecha";
             cbxFecha.Size = new Size(277, 27);
             cbxFecha.TabIndex = 0;
@@ -50,16 +50,16 @@
             dgvAsistencias.BackgroundColor = Color.White;
             dgvAsistencias.BorderStyle = BorderStyle.None;
             dgvAsistencias.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-            dgvAsistencias.Location = new Point(160, 139);
+            dgvAsistencias.Location = new Point(108, 140);
             dgvAsistencias.Name = "dgvAsistencias";
             dgvAsistencias.RowHeadersWidth = 51;
-            dgvAsistencias.Size = new Size(1093, 566);
+            dgvAsistencias.Size = new Size(952, 566);
             dgvAsistencias.TabIndex = 1;
             // 
             // label1
             // 
             label1.AutoSize = true;
-            label1.Location = new Point(160, 55);
+            label1.Location = new Point(108, 56);
             label1.Name = "label1";
             label1.Size = new Size(139, 19);
             label1.TabIndex = 2;
@@ -68,7 +68,7 @@
             // label2
             // 
             label2.AutoSize = true;
-            label2.Location = new Point(160, 736);
+            label2.Location = new Point(108, 737);
             label2.Name = "label2";
             label2.Size = new Size(148, 19);
             label2.TabIndex = 3;
@@ -77,7 +77,7 @@
             // lblTotalAsistencias
             // 
             lblTotalAsistencias.AutoSize = true;
-            lblTotalAsistencias.Location = new Point(307, 736);
+            lblTotalAsistencias.Location = new Point(255, 737);
             lblTotalAsistencias.Name = "lblTotalAsistencias";
             lblTotalAsistencias.Size = new Size(19, 19);
             lblTotalAsistencias.TabIndex = 4;
@@ -88,7 +88,7 @@
             AutoScaleDimensions = new SizeF(10F, 19F);
             AutoScaleMode = AutoScaleMode.Font;
             BackColor = Color.White;
-            ClientSize = new Size(1510, 822);
+            ClientSize = new Size(1151, 822);
             Controls.Add(lblTotalAsistencias);
             Controls.Add(label2);
             Controls.Add(label1);
